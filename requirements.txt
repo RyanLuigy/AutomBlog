@@ -1,0 +1,22 @@
+# Web app
+streamlit>=1.25.0
+
+# Manipulação de dados
+pandas>=2.1.0
+numpy>=1.26.0
+
+# Requests HTTP
+requests>=2.31.0
+
+# Google APIs
+gspread>=6.4.0
+google-auth>=2.23.0
+google-auth-oauthlib>=1.2.0
+google-api-python-client>=2.100.0
+
+# Selenium para automação
+selenium>=4.10.0
+webdriver-manager>=5.6.0
+
+# Outros
+python-dotenv>=1.0.0  # se eventualmente você usar variáveis de ambiente
