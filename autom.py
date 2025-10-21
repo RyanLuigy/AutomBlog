@@ -5,7 +5,6 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 import time
@@ -17,6 +16,8 @@ import streamlit as st
 from google.oauth2.service_account import Credentials
 import gspread
 from googleapiclient.discovery import build
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
 
 @st.cache_resource(ttl=3600)
 def get_google_services():
@@ -59,11 +60,20 @@ def baixar_imagem_para_arquivo(url):
     return caminho  # caminho local do arquivo temporário
 
 def postar_blog(categoria, titulo, tags, conteudo, img_url):
-    
+
     options = Options()
-    options.add_argument("--start-maximized")
-    service = Service(ChromeDriverManager().install())
+    options.add_argument("--headless")  # necessário no Cloud
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--remote-debugging-port=9222")
+
+    service = Service("/usr/bin/chromedriver")  # driver do sistema
     driver = webdriver.Chrome(service=service, options=options)
+
+    st.write(os.system("which chromium-browser"))
+    st.write(os.system("which chromedriver"))
+
     usuario = st.secrets["BLOG_USER"]
     senha = st.secrets["BLOG_PASS"]
     wait = WebDriverWait(driver, 5)
