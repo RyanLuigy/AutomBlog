@@ -19,7 +19,7 @@ if not st.session_state["logado"]:
         if usuario == st.secrets["login"]["user"] and senha == st.secrets["login"]["password"]:
             st.session_state["logado"] = True
             st.success("✅ Login realizado com sucesso!")
-            st.experimental_rerun()  # recarrega a página para mostrar conteúdo
+            st.rerun()  # recarrega a página para mostrar conteúdo
         else:
             st.error("❌ Usuário ou senha incorretos")
 
@@ -36,5 +36,5 @@ else:
         form_page()   # função que você cria no outro arquivo
     if st.button("Sair"):
         st.session_state["logado"] = False
-        st.experimental_rerun()
+        st.rerun()
 
