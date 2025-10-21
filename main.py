@@ -25,18 +25,16 @@ if not st.session_state["logado"]:
 
 else:
     # --- Conteúdo protegido ---
-    st.title("🎉 Bem-vindo ao sistema!")
-    st.write("Aqui vai todo o conteúdo do app que só usuários logados podem ver.")
+    st.sidebar.image("logo.png", use_container_width=True)
+    st.sidebar.markdown("---")
+    st.sidebar.title("🧭 Menu")
+    pagina = st.sidebar.radio("Escolha uma página:", ["Blogs Agendados", "Cadastro de Blogs"])
+
+    if pagina == "Blogs Agendados":
+        exibir_page()   # função que você cria no arquivo blogs.py
+    elif pagina == "Cadastro de Blogs":
+        form_page()   # função que você cria no outro arquivo
     if st.button("Sair"):
         st.session_state["logado"] = False
         st.experimental_rerun()
 
-st.sidebar.image("logo.png", use_container_width=True)
-st.sidebar.markdown("---")
-st.sidebar.title("🧭 Menu")
-pagina = st.sidebar.radio("Escolha uma página:", ["Blogs Agendados", "Cadastro de Blogs"])
-
-if pagina == "Blogs Agendados":
-    exibir_page()   # função que você cria no arquivo blogs.py
-elif pagina == "Cadastro de Blogs":
-    form_page()   # função que você cria no outro arquivo
