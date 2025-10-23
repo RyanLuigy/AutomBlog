@@ -1,20 +1,17 @@
 import os
+import sys
 import base64
 import pandas as pd
-from datetime import datetime
-from autom import get_google_services, postar_blog  # suas funções já existentes
-from loguru import logger
-from dateutil import parser
 from datetime import datetime, timezone
-import sys
+from dateutil import parser
+from loguru import logger
+from autom import get_google_services, postar_blog
 
-# Remove os handlers default
-logger.remove()
 
-# Adiciona console (stdout) e arquivo
-logger.add(sys.stdout, level="INFO")  # mostra no GitHub Actions
-logger.add("logs_auto_post.log", rotation="1 MB", level="INFO")  # grava em arquivo
-
+# === Configuração do logger ===
+logger.remove()  # Remove qualquer configuração padrão
+logger.add(sys.stdout, level="INFO")  # Mostra logs no console (GitHub Actions)
+logger.add("logs_auto_post.log", rotation="1 MB", level="INFO", enqueue=True, backtrace=True, diagnose=True)
 
 def main():
     logger.info("=== Iniciando auto_post.py ===")
@@ -24,8 +21,10 @@ def main():
         services = get_google_services()
         if services is None:
             raise Exception("Falha ao autenticar com os serviços Google.")
+        logger.success("Conexão com serviços Google bem-sucedida.")
     except Exception as e:
-        logger.error(f"Erro na autenticação: {e}")
+        logger.exception(f"Erro na autenticação: {e}")
+        logger.complete()
         return
 
     # 2. Ler planilha
@@ -35,9 +34,10 @@ def main():
         sheet = gc.open(SHEET_NAME).get_worksheet(2)
         dados = sheet.get_all_records()
         df = pd.DataFrame(dados)
-        logger.info(f"Planilha carregada com {len(df)} registros.")
+        logger.info(f"Planilha '{SHEET_NAME}' carregada com {len(df)} registros.")
     except Exception as e:
-        logger.error(f"Erro ao ler planilha: {e}")
+        logger.exception(f"Erro ao ler planilha: {e}")
+        logger.complete()
         return
 
     # 3. Filtrar posts pendentes e que estejam no horário de agendamento
@@ -54,14 +54,16 @@ def main():
             if data_agendada.tzinfo is None:
                 data_agendada = data_agendada.replace(tzinfo=timezone.utc)
 
+            logger.debug(f"[{i}] {post['titulo']} - Agendado para {data_agendada.isoformat()}")
+
             if data_agendada <= now:
                 pendentes.append((i, post))
-
         except Exception as e:
             logger.warning(f"Erro ao verificar linha {i}: {e}")
 
     if not pendentes:
         logger.info("Nenhum post pendente ou agendado para agora.")
+        logger.complete()
         return
 
     # 4. Postar os conteúdos
@@ -82,7 +84,11 @@ def main():
             sheet.update_cell(i + 2, 8, "publicado")
             logger.success(f"✅ Post '{post['titulo']}' publicado com sucesso!")
         except Exception as e:
-            logger.error(f"Erro ao postar '{post['titulo']}': {e}")
+            logger.exception(f"Erro ao postar '{post['titulo']}': {e}")
 
     logger.info("=== Finalização do script ===")
+    logger.complete()  # Garante que os logs sejam gravados antes de encerrar
 
+
+if __name__ == "__main__":
+    main()
