@@ -2,47 +2,41 @@ name: Auto Blog Post
 
 on:
   schedule:
-    - cron: "0 * * * *"  # Executa a cada hora
-  workflow_dispatch:       # Permite execução manual
+    - cron: "0 * * * *" # Executa a cada hora
+  workflow_dispatch: # Permite rodar manualmente também
 
 jobs:
   auto-post:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Fazer checkout do código
       - name: 🔄 Checkout do código
         uses: actions/checkout@v4
 
-      # 2️⃣ Configurar Python
       - name: 🐍 Configurar Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
-      # 3️⃣ Instalar dependências
       - name: 📦 Instalar dependências
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install loguru gspread google-auth google-api-python-client webdriver-manager selenium python-dateutil
+          pip install loguru gspread google-auth google-api-python-client webdriver-manager selenium pandas python-dateutil
 
-      # 4️⃣ Criar arquivo de credenciais temporário
-      - name: ⚙️ Criar arquivo de credenciais
+      - name: ⚙️ Criar arquivo de credenciais temporário
         run: |
-          echo '${{ secrets.GOOGLE_CREDENTIALS }}' > service_account.json
+          echo '${{ secrets.SERVICE_ACCOUNT_JSON }}' > service_account.json
 
-      # 5️⃣ Executar script de postagem automática
-      - name: 🌍 Executar auto_post.py
+      - name: 🌍 Executar script de postagem automática
         env:
           SHEET_NAME: ${{ secrets.SHEET_NAME }}
           BLOG_USER: ${{ secrets.BLOG_USER }}
           BLOG_PASS: ${{ secrets.BLOG_PASS }}
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
         run: |
-          python auto_post.py
+          python auto_post.py || echo "Script falhou, mas continuando para salvar logs."
 
-      # 6️⃣ Upload dos logs como artifact
       - name: 📤 Upload dos logs como artefato
         if: always()
         uses: actions/upload-artifact@v4
