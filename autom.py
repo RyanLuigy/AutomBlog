@@ -36,20 +36,25 @@ def get_secret(key: str, default=None):
 # -------------------------------------------------------------------
 
 def get_google_services():
-    """
-    Autentica tanto no Streamlit (st.secrets) quanto no GitHub Actions (GOOGLE_CREDENTIALS)
-    """
     SCOPE = [
         "https://www.googleapis.com/auth/spreadsheets",
         "https://www.googleapis.com/auth/drive",
         "https://www.googleapis.com/auth/drive.file"
     ]
 
-    creds_json = get_secret("service_account", None)
+    creds_json = None
 
-    # Caso o Streamlit não tenha o bloco [service_account]
-    if not isinstance(creds_json, dict):
-        raw_env = get_secret("GOOGLE_CREDENTIALS")
+    # Tenta Streamlit
+    try:
+        import streamlit as st
+        if "service_account" in st.secrets:
+            creds_json = st.secrets["service_account"]  # dicionário completo
+    except Exception:
+        pass
+
+    # Tenta GitHub Actions
+    if not creds_json:
+        raw_env = os.getenv("GOOGLE_CREDENTIALS")
         if raw_env:
             creds_json = json.loads(raw_env)
 
