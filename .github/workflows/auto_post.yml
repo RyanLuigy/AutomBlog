@@ -33,7 +33,7 @@ jobs:
           SHEET_NAME: ${{ secrets.SHEET_NAME }}
           BLOG_USER: ${{ secrets.BLOG_USER }}
           BLOG_PASS: ${{ secrets.BLOG_PASS }}
-          GOOGLE_APPLICATION_CREDENTIALS: service_account.json
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
         run: |
           python auto_post.py
 
