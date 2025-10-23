@@ -2,44 +2,49 @@ name: Auto Blog Post
 
 on:
   schedule:
-    - cron: "0 * * * *"  # Executa a cada hora
-  workflow_dispatch:      # Permite rodar manualmente também
+    - cron: '0 * * * *'  # executa todo início de hora
+  workflow_dispatch:       # permite rodar manualmente
 
 jobs:
   auto-post:
     runs-on: ubuntu-latest
+    env:
+      GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+      BLOG_USER: ${{ secrets.BLOG_USER }}
+      BLOG_PASS: ${{ secrets.BLOG_PASS }}
+      SHEET_NAME: ${{ secrets.SHEET_NAME }}
 
     steps:
-      - name: 🔄 Checkout do código
+      # 1️⃣ Checkout do código
+      - name: 🔄 Checkout
         uses: actions/checkout@v4
 
+      # 2️⃣ Configurar Python
       - name: 🐍 Configurar Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
+      # 3️⃣ Instalar dependências
       - name: 📦 Instalar dependências
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install loguru gspread google-auth google-api-python-client webdriver-manager selenium
+          pip install loguru gspread google-auth google-api-python-client selenium webdriver-manager
 
-      - name: ⚙️ Criar arquivo de credenciais temporário
+      # 4️⃣ Criar pasta de logs
+      - name: 📝 Preparar logs
+        run: mkdir -p logs
+
+      # 5️⃣ Rodar auto_post.py e salvar logs
+      - name: 🌍 Executar auto_post
         run: |
-          echo '${{ secrets.SERVICE_ACCOUNT_JSON }}' > service_account.json
+          python auto_post.py 2>&1 | tee logs/auto_post.log
 
-      - name: 🌍 Executar script de postagem automática
-        env:
-          SHEET_NAME: ${{ secrets.SHEET_NAME }}
-          BLOG_USER: ${{ secrets.BLOG_USER }}
-          BLOG_PASS: ${{ secrets.BLOG_PASS }}
-          GOOGLE_APPLICATION_CREDENTIALS: service_account.json
-        run: |
-          python auto_post.py
-
-      - name: 📤 Upload dos logs como artefato
+      # 6️⃣ Upload dos logs como artefato
+      - name: 📤 Upload dos logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: auto_post_logs
-          path: logs_auto_post.log
+          path: logs/auto_post.log
