@@ -6,8 +6,15 @@ from autom import get_google_services, postar_blog  # suas funções já existen
 from loguru import logger
 from dateutil import parser
 from datetime import datetime, timezone
+import sys
 
-logger.add("logs_auto_post.log", rotation="1 MB", level="INFO")
+# Remove os handlers default
+logger.remove()
+
+# Adiciona console (stdout) e arquivo
+logger.add(sys.stdout, level="INFO")  # mostra no GitHub Actions
+logger.add("logs_auto_post.log", rotation="1 MB", level="INFO")  # grava em arquivo
+
 
 def main():
     logger.info("=== Iniciando auto_post.py ===")
