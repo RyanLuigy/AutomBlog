@@ -52,12 +52,12 @@ def form_page():
         
         file_id = uploaded.get("id")
 
-        drive_service.permissions().create(
-            fileId=file_id,
-            body={"role": "reader", "type": "anyone"},
-            fields="id",
-            supportsAllDrives=True
-        ).execute()
+        # drive_service.permissions().create(
+        #     fileId=file_id,
+        #     body={"role": "reader", "type": "anyone"},
+        #     fields="id",
+        #     supportsAllDrives=True
+        # ).execute()
 
         return f"https://drive.google.com/uc?id={file_id}"
 
