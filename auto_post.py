@@ -4,6 +4,8 @@ import pandas as pd
 from datetime import datetime
 from autom import get_google_services, postar_blog  # suas funções já existentes
 from loguru import logger
+from dateutil import parser
+from datetime import datetime, timezone
 
 logger.add("logs_auto_post.log", rotation="1 MB", level="INFO")
 
@@ -32,14 +34,22 @@ def main():
         return
 
     # 3. Filtrar posts pendentes e que estejam no horário de agendamento
-    now = datetime.now()
+    now = datetime.now(timezone.utc)
     pendentes = []
+
     for i, post in enumerate(dados):
         try:
-            if post["status"].strip().lower() == "pendente":
-                data_agendada = datetime.strptime(post["data_agendada"], "%Y-%m-%d %H:%M:%S")
-                if data_agendada <= now:
-                    pendentes.append((i, post))
+            status = post["status"].strip().lower()
+            if status != "pendente":
+                continue
+
+            data_agendada = parser.isoparse(post["data_agendada"])
+            if data_agendada.tzinfo is None:
+                data_agendada = data_agendada.replace(tzinfo=timezone.utc)
+
+            if data_agendada <= now:
+                pendentes.append((i, post))
+
         except Exception as e:
             logger.warning(f"Erro ao verificar linha {i}: {e}")
 
@@ -69,5 +79,3 @@ def main():
 
     logger.info("=== Finalização do script ===")
 
-if __name__ == "__main__":
-    main()
