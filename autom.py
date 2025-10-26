@@ -94,8 +94,8 @@ def baixar_imagem_para_arquivo(url):
 def enviar_email(titulo, remetentes):
 
     # Credenciais do Gmail
-    EMAIL = get_secret("email_gmail")
-    SENHA = get_secret("senha_gmail")
+    EMAIL = get_secret("EMAIL_GMAIL")
+    SENHA = get_secret("SENHA_GMAIL")
 
     corpo = f"""
     <html>
