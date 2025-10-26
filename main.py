@@ -1,5 +1,6 @@
 import streamlit as st
 
+from autom import enviar_email
 from exibir import exibir_page
 from form import form_page
 

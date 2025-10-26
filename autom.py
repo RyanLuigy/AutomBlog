@@ -1,9 +1,11 @@
+from email.mime.text import MIMEText
 import os
 import tempfile
 import requests
 import json
 import time
 import gspread
+import streamlit as st
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from selenium import webdriver
@@ -12,6 +14,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
+import smtplib
+
 
 # -------------------------------------------------------------------
 # 🔐 Função de leitura de segredos híbrida
@@ -46,7 +50,6 @@ def get_google_services():
 
     # Tenta Streamlit
     try:
-        import streamlit as st
         if "service_account" in st.secrets:
             creds_json = st.secrets["service_account"]  # dicionário completo
     except Exception:
@@ -87,6 +90,64 @@ def baixar_imagem_para_arquivo(url):
             f.write(chunk)
     return caminho
 
+
+def enviar_email(titulo, remetentes):
+
+    # Credenciais do Gmail
+    EMAIL = get_secret("email_gmail")
+    SENHA = get_secret("senha_gmail")
+
+    corpo = f"""
+    <html>
+    <body style="font-family: Arial, sans-serif; background-color:#f4f4f7; padding:20px;">
+        <div style="max-width:600px; margin:auto; background-color:#ffffff; padding:30px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.1);">
+        
+        <!-- Logo -->
+        <div style="text-align:center; margin-bottom:20px;">
+            <img src="https://www.cimatecjr.com.br/assets/img/logo.png?v=1.01" width="120" alt="CIMATEC Jr.">
+        </div>
+        
+        <!-- Título -->
+        <h2 style="text-align:center; color:#004aad; margin-bottom:20px;">Olá!</h2>
+        
+        <!-- Mensagem -->
+        <p style="font-size:16px; color:#333;">
+            O blog '<b>{titulo} {remetentes}</b>' acaba de ser postado com sucesso!
+        </p>
+        
+        <p style="font-size:16px; color:#333;">
+            Confira em:
+        </p>
+        
+        <!-- Botão CTA -->
+        <p style="text-align:center; margin-top:30px;">
+            <a href="https://www.cimatecjr.com.br/blog" target="_blank" 
+            style="background-color:#004aad; color:#ffffff; padding:12px 25px; text-decoration:none; border-radius:5px; font-weight:bold; display:inline-block;">
+            Acessar o Blog
+            </a>
+        </p>
+
+        <!-- Rodapé opcional -->
+        <p style="font-size:12px; color:#888; text-align:center; margin-top:40px;">
+            © 2025 CIMATEC Jr. Todos os direitos reservados.
+        </p>
+        
+        </div>
+    </body>
+    </html>
+    """
+
+    # Criar e-mail
+    msg = MIMEText(corpo, "html")
+    msg["Subject"] = f"[BLOG POSTADO] {titulo}"
+    msg["From"] = EMAIL
+    # msg["To"] = ", ".join(remetentes)
+    msg["To"] = "ryanluigy@cimatecjr.com.br"
+
+    # Enviar
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+        server.login(EMAIL, SENHA)
+        server.send_message(msg)
 
 # -------------------------------------------------------------------
 # 🤖 Função principal de postagem
@@ -137,6 +198,24 @@ def postar_blog(categoria, titulo, tags, conteudo, img_url):
     driver.execute_script("arguments[0].scrollIntoView(true);", botao)
     time.sleep(1)
     botao.click()
+
+    
+    wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#DataTables_Table_0 tbody tr.odd")))
+    linha = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#DataTables_Table_0 tbody tr:nth-child(1)")))
+    numero = linha.find_element(By.TAG_NAME, "td").text
+    imagem_td = linha.find_elements(By.TAG_NAME, "td")[1]
+    imagem_upload_site = imagem_td.find_element(By.TAG_NAME, "img").get_attribute("src")
+    driver.get("https://www.cimatecjr.com.br/admin/blog/" + numero + "/edit")
+    time.sleep(1)
+    novo_conteudo = f"<img src={imagem_upload_site}>" + conteudo
+    elemento1 = driver.find_element(By.CSS_SELECTOR, "div.note-editable.panel-body[contenteditable='true']")
+    driver.execute_script("arguments[0].innerHTML = arguments[1];", elemento1, novo_conteudo)
+    driver.execute_script("""document.querySelector('textarea[name="content"]').value = arguments[0];""", novo_conteudo)
+    time.sleep(2)
+    botao1 = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div.pull-right > button.btn-primary[type='submit']")))
+    driver.execute_script("arguments[0].scrollIntoView(true);", botao1)
+    time.sleep(1)
+    botao1.click()
 
     # Confirmação
     wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#DataTables_Table_0 tbody tr.odd")))

@@ -5,7 +5,7 @@ import pandas as pd
 from datetime import datetime, timezone
 from dateutil import parser
 from loguru import logger
-from autom import get_google_services, postar_blog
+from autom import enviar_email, get_google_services, postar_blog
 
 
 # === Configuração do logger ===
@@ -33,6 +33,11 @@ def main():
         SHEET_NAME = os.getenv("SHEET_NAME")
         sheet = gc.open(SHEET_NAME).get_worksheet(2)
         dados = sheet.get_all_records()
+        sheet_email = gc.open(SHEET_NAME).get_worksheet(3)
+        remetentes_dados = sheet_email.get_all_records()
+        remetentes_para_envio = []
+        for i, email in enumerate(remetentes_dados):
+            remetentes_para_envio.append(email['email_cadastrado'])
         df = pd.DataFrame(dados)
         logger.info(f"Planilha '{SHEET_NAME}' carregada com {len(df)} registros.")
     except Exception as e:
@@ -83,6 +88,11 @@ def main():
             # Atualiza o status para publicado
             sheet.update_cell(i + 2, 8, "publicado")
             logger.success(f"✅ Post '{post['titulo']}' publicado com sucesso!")
+            try:
+                enviar_email(post['titulo'], remetentes_para_envio)
+                logger.success(f"✅ Email enviado com sucesso!")
+            except Exception as e:
+                 logger.exception(f"Erro ao enviar email: {e}")
         except Exception as e:
             logger.exception(f"Erro ao postar '{post['titulo']}': {e}")
 

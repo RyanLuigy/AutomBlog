@@ -94,9 +94,13 @@ def form_page():
             
             # Nota para o usuário, já que o conteúdo está acima
             st.caption("O campo 'Conteúdo' está acima para permitir a pré-visualização em tempo real.")
+
+            TZ_UTC_MINUS_3 = datetime.timezone(datetime.timedelta(hours=-3))
+            data_e_dia_agora_local = datetime.datetime.now(TZ_UTC_MINUS_3)
+
             
-            data_agendada = st.date_input("Data agendada", datetime.date.today())
-            hora_agendada = st.time_input("Hora agendada", datetime.datetime.now().time())
+            data_agendada = st.date_input("Data agendada","today", min_value=data_e_dia_agora_local.date(), format="DD/MM/YYYY")
+            hora_agendada = st.time_input("Hora agendada", "now")
             submit = st.form_submit_button("Salvar agendamento")
 
     if submit:

@@ -22,11 +22,17 @@ def exibir_page():
     dados = sheet.get_all_records()
     df = pd.DataFrame(dados)
 
-    st.dataframe(df)
+    if st.toggle("Ver histórico de posts agendados com a automação", False):
+        with st.container(border=True):
+            st.subheader("Histórico de posts agendados com a automação")
+            st.dataframe(df)
 
-
+    posts_pendentes = False
+    
     for i, post in enumerate(dados):
+       
         if post["status"] == "pendente":
+            posts_pendentes = True
             conteudo_html = base64.b64decode(post["conteudo_encoded"]).decode("utf-8")
             with st.container(border=True):
                 st.subheader(post["titulo"])
@@ -56,4 +62,7 @@ def exibir_page():
                             st.success("✅ Publicado com sucesso!")
                         except Exception as e:
                             st.error(f"Erro ao postar: {e}")
-                
+    if not posts_pendentes:
+        with st.container(border=True):
+            st.subheader("Post agendados pendentes")
+            st.info("Nenhum post agendado!")
