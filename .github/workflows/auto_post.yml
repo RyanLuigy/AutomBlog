@@ -34,6 +34,8 @@ jobs:
           BLOG_USER: ${{ secrets.BLOG_USER }}
           BLOG_PASS: ${{ secrets.BLOG_PASS }}
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+          EMAIL_GMAIL: ${{ secrets.EMAIL_GMAIL }}
+          SENHA_GMAIL: ${{ secrets.SENHA_GMAIL }}
         run: |
           python auto_post.py || echo "Script falhou, mas continuando para salvar logs."
 
