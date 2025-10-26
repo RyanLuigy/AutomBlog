@@ -108,16 +108,16 @@ def enviar_email(titulo, remetentes):
         </div>
         
         <!-- Título -->
-        <h2 style="text-align:center; color:#004aad; margin-bottom:20px;">Olá!</h2>
+        <h1 style="text-align:center; color:#004aad; margin-bottom:20px;">Olá!</h1>
         
         <!-- Mensagem -->
-        <p style="font-size:16px; color:#333;">
-            O blog '<b>{titulo} {remetentes}</b>' acaba de ser postado com sucesso!
-        </p>
+        <h3 style="font-size:16px; color:#333;">
+            O blog '<b>{titulo}</b>' acaba de ser postado com sucesso!
+        </h3>
         
-        <p style="font-size:16px; color:#333;">
+        <h3 style="font-size:16px; color:#333;">
             Confira em:
-        </p>
+        </h3>
         
         <!-- Botão CTA -->
         <p style="text-align:center; margin-top:30px;">
@@ -141,8 +141,7 @@ def enviar_email(titulo, remetentes):
     msg = MIMEText(corpo, "html")
     msg["Subject"] = f"[BLOG POSTADO] {titulo}"
     msg["From"] = EMAIL
-    # msg["To"] = ", ".join(remetentes)
-    msg["To"] = "ryanluigy@cimatecjr.com.br"
+    msg["To"] = ", ".join(remetentes)
 
     # Enviar
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
@@ -207,7 +206,7 @@ def postar_blog(categoria, titulo, tags, conteudo, img_url):
     imagem_upload_site = imagem_td.find_element(By.TAG_NAME, "img").get_attribute("src")
     driver.get("https://www.cimatecjr.com.br/admin/blog/" + numero + "/edit")
     time.sleep(1)
-    novo_conteudo = f"<img src={imagem_upload_site}>" + conteudo
+    novo_conteudo = f"<img src={imagem_upload_site}> <p><br></p>" + conteudo
     elemento1 = driver.find_element(By.CSS_SELECTOR, "div.note-editable.panel-body[contenteditable='true']")
     driver.execute_script("arguments[0].innerHTML = arguments[1];", elemento1, novo_conteudo)
     driver.execute_script("""document.querySelector('textarea[name="content"]').value = arguments[0];""", novo_conteudo)
